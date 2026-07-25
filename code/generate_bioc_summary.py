@@ -1,7 +1,7 @@
 import json
 import re
 
-filepath = "/Users/vincentcarey/.gemini/antigravity/brain/ee525d05-f6d2-4ebf-99cd-6f96d05e49b6/.system_generated/steps/42/content.md"
+filepath = "livecontent.md"
 
 with open(filepath, "r") as f:
     text = f.read()
@@ -119,7 +119,7 @@ for cat_name, items in categories.items():
 markdown_content = markdown_content.rstrip("-\n ")
 
 # Write out the new summary file
-out_path = "/Users/vincentcarey/.gemini/antigravity/brain/ee525d05-f6d2-4ebf-99cd-6f96d05e49b6/bioc_contributions_summary.md"
+out_path = "bioc_contributions_summary.md"
 with open(out_path, "w") as f:
     f.write(markdown_content)
 
