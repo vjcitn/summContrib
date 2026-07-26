@@ -7,7 +7,7 @@ are all open issues at `bioconductor/BiocContributions`.
 ```
   curl -H "Authorization: Bearer $GITHUB_PAT" \
        -H "Accept: application/vnd.github+json" \
-       "https://api.github.com/repos/bioconductor/BiocContributions/issues?state=all&per_page=100"
+       "https://api.github.com/repos/bioconductor/BiocContributions/issues?state=open&per_page=100"
 ```
 
 2. Save the result of the API call above to a file, say `conts.json`.
