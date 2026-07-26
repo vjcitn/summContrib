@@ -1,5 +1,8 @@
 import json
 import re
+import urllib.request
+import urllib.error
+import os
 
 filepath = "livecontent.md"
 
@@ -32,6 +35,66 @@ for issue in issues:
 
 # Add manual fallbacks if any are missing or need correction
 # Let's make sure casing is handled properly
+
+def has_compiled_code(repo_url, token=None):
+    """Return True if the GitHub repo has a src/ folder containing C or C++ files.
+
+    Checks the GitHub Contents API for the src/ directory and looks for files
+    with extensions .c, .cc, .cpp, .cxx, or .h.  Returns False if src/ is
+    absent or the API call fails.  Pass a GitHub personal-access token via the
+    token argument (or the GITHUB_TOKEN env var) to avoid rate-limiting.
+    """
+    # Normalise URL: strip trailing slash and .git suffix
+    repo_url = repo_url.rstrip("/")
+    if repo_url.endswith(".git"):
+        repo_url = repo_url[:-4]
+
+    # Extract owner/repo from https://github.com/owner/repo
+    m = re.search(r'github\.com/([^/]+/[^/]+)$', repo_url)
+    if not m:
+        return False
+
+    api_url = f"https://api.github.com/repos/{m.group(1)}/contents/src"
+    headers = {"Accept": "application/vnd.github+json",
+               "User-Agent": "bioc-submission-scanner"}
+
+    resolved_token = token or os.environ.get("GITHUB_TOKEN")
+    if resolved_token:
+        headers["Authorization"] = f"Bearer {resolved_token}"
+
+    req = urllib.request.Request(api_url, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            contents = json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return False   # no src/ directory
+        return False
+    except Exception:
+        return False
+
+    compiled_extensions = {".c", ".cc", ".cpp", ".cxx", ".h", ".hpp"}
+    for entry in contents:
+        _, ext = os.path.splitext(entry.get("name", ""))
+        if ext.lower() in compiled_extensions:
+            return True
+    return False
+
+
+def scan_compiled_code(package_repos, token=None):
+    """Return a dict mapping package name -> bool indicating compiled code presence.
+
+    Iterates over every unique repo URL in package_repos and calls
+    has_compiled_code for each one.
+    """
+    # Deduplicate: multiple keys (title variants) may share the same URL
+    seen_urls = {}
+    for name, url in package_repos.items():
+        if url not in seen_urls:
+            seen_urls[url] = has_compiled_code(url, token=token)
+
+    return {name: seen_urls[url] for name, url in package_repos.items()}
+
 
 def get_link(name, issue_num):
     # Try exact match or clean title match
@@ -100,9 +163,15 @@ categories = {
     ]
 }
 
+print("Scanning repos for compiled C/C++ code in src/ — this may take a moment...")
+compiled_flags = scan_compiled_code(package_repos)
+print("Scan complete.")
+
 markdown_content = """# BiocContributions Package Submissions Analysis
 
 The `bioconductor/BiocContributions` repository serves as the submission portal and automated build-test framework for new R packages proposed for inclusion in the Bioconductor project. This report classifies the recent package submissions into six core categories of genomic data science.
+
+Packages that include compiled C or C++ source code in their `src/` directory are marked with **[C/C++]**.
 
 ---
 """
@@ -112,7 +181,8 @@ for cat_name, items in categories.items():
     markdown_content += "This category includes tools dedicated to the specified topic.\n\n### Representative Submissions:\n"
     for name, issue_num, desc in items:
         link_str = get_link(name, issue_num)
-        markdown_content += f"* **{link_str}** (Issue #{issue_num}): {desc}\n"
+        compiled_tag = " `[C/C++]`" if compiled_flags.get(name.lower()) else ""
+        markdown_content += f"* **{link_str}**{compiled_tag} (Issue #{issue_num}): {desc}\n"
     markdown_content += "\n---\n"
 
 # Remove the trailing line/dashes
