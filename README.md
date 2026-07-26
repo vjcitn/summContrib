@@ -16,6 +16,8 @@ are all open issues at `bioconductor/BiocContributions`.
 a valid value.  A markdown document will be produced with categorization and
 additional information about each submission.
 
+An example output is [here](https://github.com/vjcitn/summContrib/blob/main/2026-07-26/bioc_contributions_summary.md).
+
 ## Compiled code detection
 
 `code/generate_bioc_summary.py` automatically checks each submitted package's GitHub repository for a `src/` directory containing C or C++ source files (`.c`, `.cc`, `.cpp`, `.cxx`, `.h`, `.hpp`). Packages where such files are found are tagged with `` `[C/C++]` `` inline in the report.
