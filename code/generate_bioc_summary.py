@@ -1,12 +1,54 @@
+import argparse
 import json
 import re
 import urllib.request
 import urllib.error
 import os
 
-filepath = "livecontent.md"
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
 
-with open(filepath, "r") as f:
+PROVIDER_DEFAULTS = {
+    "anthropic": "claude-sonnet-4-6",
+    "openai":    "gpt-4o",
+    "google":    "gemini-3.5",
+}
+
+parser = argparse.ArgumentParser(
+    description="Generate a Bioconductor submission report from a livecontent.md snapshot."
+)
+parser.add_argument(
+    "--llm-provider",
+    choices=["anthropic", "openai", "google", "none"],
+    default="anthropic",
+    help="Provider to use for dynamic category generation "
+         "(default: anthropic). Use 'none' to fall back to hardcoded categories.",
+)
+parser.add_argument(
+    "--model",
+    default=None,
+    help="Model name to use. Defaults per provider: "
+         + ", ".join(f"{p}={m}" for p, m in PROVIDER_DEFAULTS.items()) + ".",
+)
+parser.add_argument(
+    "--input", default="livecontent.md",
+    help="Path to the livecontent.md file (default: livecontent.md).",
+)
+parser.add_argument(
+    "--output", default="bioc_contributions_summary.md",
+    help="Path for the generated report (default: bioc_contributions_summary.md).",
+)
+args = parser.parse_args()
+
+provider = args.llm_provider
+model = args.model or PROVIDER_DEFAULTS.get(provider, "")
+
+# ---------------------------------------------------------------------------
+# Parse issues
+# ---------------------------------------------------------------------------
+
+with open(args.input, "r") as f:
     text = f.read()
 
 json_start = text.find("[")
@@ -14,27 +56,22 @@ if json_start == -1:
     print("Could not find JSON array")
     exit(1)
 
-json_text = text[json_start:]
-issues = json.loads(json_text)
+issues = json.loads(text[json_start:])
 
 # Build a mapping of package_name -> repo_url
 package_repos = {}
 for issue in issues:
     title = issue.get("title", "").strip()
-    # Clean title in case of "SpectraStash - serialize/restore MS..."
     clean_title = title.split(" ")[0].split(":")[0].strip()
-    
     body = issue.get("body", "") or ""
-    # Extract url from body
-    # We look for lines containing github.com
     urls = re.findall(r'https://github.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', body)
     if urls:
-        # Use the first github URL found
         package_repos[title.lower()] = urls[0]
         package_repos[clean_title.lower()] = urls[0]
 
-# Add manual fallbacks if any are missing or need correction
-# Let's make sure casing is handled properly
+# ---------------------------------------------------------------------------
+# Compiled-code detection
+# ---------------------------------------------------------------------------
 
 def has_compiled_code(repo_url, token=None):
     """Return True if the GitHub repo has a src/ folder containing C or C++ files.
@@ -44,12 +81,10 @@ def has_compiled_code(repo_url, token=None):
     absent or the API call fails.  Pass a GitHub personal-access token via the
     token argument (or the GITHUB_TOKEN env var) to avoid rate-limiting.
     """
-    # Normalise URL: strip trailing slash and .git suffix
     repo_url = repo_url.rstrip("/")
     if repo_url.endswith(".git"):
         repo_url = repo_url[:-4]
 
-    # Extract owner/repo from https://github.com/owner/repo
     m = re.search(r'github\.com/([^/]+/[^/]+)$', repo_url)
     if not m:
         return False
@@ -68,7 +103,7 @@ def has_compiled_code(repo_url, token=None):
             contents = json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
         if e.code == 404:
-            return False   # no src/ directory
+            return False
         return False
     except Exception:
         return False
@@ -82,28 +117,141 @@ def has_compiled_code(repo_url, token=None):
 
 
 def scan_compiled_code(package_repos, token=None):
-    """Return a dict mapping package name -> bool indicating compiled code presence.
-
-    Iterates over every unique repo URL in package_repos and calls
-    has_compiled_code for each one.
-    """
-    # Deduplicate: multiple keys (title variants) may share the same URL
+    """Return a dict mapping package name -> bool indicating compiled code presence."""
     seen_urls = {}
     for name, url in package_repos.items():
         if url not in seen_urls:
             seen_urls[url] = has_compiled_code(url, token=token)
-
     return {name: seen_urls[url] for name, url in package_repos.items()}
 
+# ---------------------------------------------------------------------------
+# LLM-based category generation
+# ---------------------------------------------------------------------------
 
-def get_link(name, issue_num):
-    # Try exact match or clean title match
-    url = package_repos.get(name.lower())
-    if url:
-        return f"[{name}]({url})"
-    return f"{name}"
+def _issue_summary(issue):
+    """Return a short text description of a package from its issue body."""
+    body = issue.get("body", "") or ""
+    # Strip GitHub URLs and markdown links to reduce noise
+    body = re.sub(r'https?://\S+', '', body)
+    body = re.sub(r'!\[.*?\]\(.*?\)', '', body)   # image links
+    body = re.sub(r'\[.*?\]\(.*?\)', '', body)     # markdown links
+    body = re.sub(r'[#*`>_]', '', body)            # markdown punctuation
+    body = re.sub(r'\s+', ' ', body).strip()
+    return body[:400]
 
-categories = {
+
+def _parse_llm_json(text):
+    """Extract and parse a JSON object from LLM response text."""
+    start = text.find('{')
+    end = text.rfind('}') + 1
+    if start == -1 or end == 0:
+        raise ValueError("No JSON object found in LLM response")
+    raw = json.loads(text[start:end])
+    # Entries are [name, issue_num, desc] lists; convert to tuples
+    return {cat: [tuple(item) for item in items] for cat, items in raw.items()}
+
+
+def _build_prompt(packages):
+    pkg_lines = "\n".join(
+        f"- {p['name']} (Issue #{p['issue_num']}): {p['body']}"
+        for p in packages
+    )
+    return f"""You are analysing Bioconductor R package submissions for a report.
+
+Group ALL of the packages listed below into 5-6 meaningful categories based on
+their biological or computational purpose. Every package must appear in exactly
+one category. For each package write a concise one-sentence description of what
+it does (do not just repeat the package name).
+
+Return ONLY valid JSON — no prose, no markdown fences — in this exact schema:
+
+{{
+  "1. Category Name": [
+    ["PackageName", <issue_number_integer>, "One-sentence description."],
+    ...
+  ],
+  "2. Another Category": [ ... ],
+  ...
+}}
+
+Packages to categorise:
+{pkg_lines}"""
+
+
+def _collect_packages(issues):
+    packages = []
+    for issue in issues:
+        title = issue.get("title", "").strip()
+        clean_title = title.split(" ")[0].split(":")[0].strip()
+        packages.append({
+            "name": clean_title,
+            "issue_num": issue.get("number", 0),
+            "body": _issue_summary(issue),
+        })
+    return packages
+
+
+def build_categories_with_anthropic(issues, model):
+    try:
+        import anthropic
+    except ImportError:
+        raise ImportError(
+            "The 'anthropic' package is required for --llm-provider anthropic.\n"
+            "Install it with:  pip install anthropic"
+        )
+
+    packages = _collect_packages(issues)
+    client = anthropic.Anthropic()
+    print(f"Sending {len(packages)} packages to Anthropic ({model}) for categorisation...")
+    message = client.messages.create(
+        model=model,
+        max_tokens=4096,
+        messages=[{"role": "user", "content": _build_prompt(packages)}],
+    )
+    return _parse_llm_json(message.content[0].text)
+
+
+def build_categories_with_openai(issues, model):
+    try:
+        import openai
+    except ImportError:
+        raise ImportError(
+            "The 'openai' package is required for --llm-provider openai.\n"
+            "Install it with:  pip install openai"
+        )
+
+    packages = _collect_packages(issues)
+    client = openai.OpenAI()
+    print(f"Sending {len(packages)} packages to OpenAI ({model}) for categorisation...")
+    response = client.chat.completions.create(
+        model=model,
+        max_tokens=4096,
+        messages=[{"role": "user", "content": _build_prompt(packages)}],
+    )
+    return _parse_llm_json(response.choices[0].message.content)
+
+
+def build_categories_with_google(issues, model):
+    try:
+        import google.generativeai as genai
+    except ImportError:
+        raise ImportError(
+            "The 'google-generativeai' package is required for --llm-provider google.\n"
+            "Install it with:  pip install google-generativeai"
+        )
+
+    packages = _collect_packages(issues)
+    genai.configure(api_key=os.environ.get("GOOGLE_API_KEY", ""))
+    client = genai.GenerativeModel(model)
+    print(f"Sending {len(packages)} packages to Google ({model}) for categorisation...")
+    response = client.generate_content(_build_prompt(packages))
+    return _parse_llm_json(response.text)
+
+# ---------------------------------------------------------------------------
+# Hardcoded categories (fallback / --llm none)
+# ---------------------------------------------------------------------------
+
+HARDCODED_CATEGORIES = {
     "1. Single-Cell & Spatial Omics": [
         ("MultiAssaySpatialExperiment", 110, "Integrates multiple spatial assays and imaging data into a unified, coordinate-aware experimental container."),
         ("DuckDBSpatial", 108, "High-performance querying and extraction of spatial transcriptomics features stored in database backends."),
@@ -163,13 +311,42 @@ categories = {
     ]
 }
 
+# ---------------------------------------------------------------------------
+# Build categories
+# ---------------------------------------------------------------------------
+
+if provider == "anthropic":
+    categories = build_categories_with_anthropic(issues, model)
+elif provider == "openai":
+    categories = build_categories_with_openai(issues, model)
+elif provider == "google":
+    categories = build_categories_with_google(issues, model)
+else:
+    categories = HARDCODED_CATEGORIES
+
+# ---------------------------------------------------------------------------
+# Report generation
+# ---------------------------------------------------------------------------
+
+def get_link(name, issue_num):
+    url = package_repos.get(name.lower())
+    if url:
+        return f"[{name}]({url})"
+    return f"{name}"
+
 print("Scanning repos for compiled C/C++ code in src/ — this may take a moment...")
 compiled_flags = scan_compiled_code(package_repos)
 print("Scan complete.")
 
-markdown_content = """# BiocContributions Package Submissions Analysis
+llm_note = (
+    f"Categories were generated dynamically by **{provider}** using model `{model}`."
+    if provider != "none"
+    else "Categories are predefined."
+)
 
-The `bioconductor/BiocContributions` repository serves as the submission portal and automated build-test framework for new R packages proposed for inclusion in the Bioconductor project. This report classifies the recent package submissions into six core categories of genomic data science.
+markdown_content = f"""# BiocContributions Package Submissions Analysis
+
+The `bioconductor/BiocContributions` repository serves as the submission portal and automated build-test framework for new R packages proposed for inclusion in the Bioconductor project. This report classifies the recent package submissions into themed categories of genomic data science. {llm_note}
 
 Packages that include compiled C or C++ source code in their `src/` directory are marked with **[C/C++]**.
 
@@ -185,12 +362,9 @@ for cat_name, items in categories.items():
         markdown_content += f"* **{link_str}**{compiled_tag} (Issue #{issue_num}): {desc}\n"
     markdown_content += "\n---\n"
 
-# Remove the trailing line/dashes
 markdown_content = markdown_content.rstrip("-\n ")
 
-# Write out the new summary file
-out_path = "bioc_contributions_summary.md"
-with open(out_path, "w") as f:
+with open(args.output, "w") as f:
     f.write(markdown_content)
 
-print("Generated bioc_contributions_summary.md successfully!")
+print(f"Generated {args.output} successfully!")
