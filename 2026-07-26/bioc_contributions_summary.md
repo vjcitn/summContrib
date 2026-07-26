@@ -1,0 +1,92 @@
+# BiocContributions Package Submissions Analysis
+
+The `bioconductor/BiocContributions` repository serves as the submission portal and automated build-test framework for new R packages proposed for inclusion in the Bioconductor project. This report classifies the recent package submissions into themed categories of genomic data science. Categories are predefined.
+
+Packages that include compiled C or C++ source code in their `src/` directory are marked with **[C/C++]**.
+
+---
+
+## 1. Single-Cell & Spatial Omics
+This category includes tools dedicated to the specified topic.
+
+### Representative Submissions:
+* **[MultiAssaySpatialExperiment](https://github.com/Genentech/MultiAssaySpatialExperiment)** (Issue #110): Integrates multiple spatial assays and imaging data into a unified, coordinate-aware experimental container.
+* **[DuckDBSpatial](https://github.com/Genentech/DuckDBSpatial)** (Issue #108): High-performance querying and extraction of spatial transcriptomics features stored in database backends.
+* **[multipletR](https://github.com/Alex05a/multipletR)** (Issue #101): Doublet/multiplet detection in patient-derived xenograft (PDX) single-cell RNA-seq.
+* **[scCertify](https://github.com/Jaya-Surya-dev/scCertify)** (Issue #78): An explainable confidence scoring framework for annotating cell types in single-cell RNA-seq data.
+* **[scOverlay](https://github.com/bernatgel/scOverlay)** (Issue #68): Overlay and registration utilities for single-cell imaging and transcriptomics data.
+* **[scCompoundDE](https://github.com/SubhadipJana1409/scCompoundDE)** (Issue #49): Differential expression analysis specifically designed for drug/compound screening at single-cell resolution.
+* **[SimiCviz](https://github.com/ML4BM-Lab/SimiCviz)** (Issue #38): Visualization and regulatory analysis of gene co-expression and transcription factors in single cells.
+* **[spatialdataR](https://github.com/HelenaLC/spatialdataR)** (Issue #34): Representation and manipulation of large spatial biology datasets.
+* **[scMAGeCK](https://github.com/weili-lab/scMAGeCK)** (Issue #89): High-throughput single-cell CRISPR screen analysis.
+
+---
+
+## 2. Proteomics, Metabolomics, & Mass Spectrometry
+This category includes tools dedicated to the specified topic.
+
+### Representative Submissions:
+* **[quantMSImageR](https://github.com/MJS-708/quantMSImageR)** (Issue #115): Preprocessing, segmentation, and quantification of Mass Spectrometry Imaging (MSI) data.
+* **[MRManalyzeR](https://github.com/MJS-708/MRManalyzeR)** (Issue #112): Post-acquisition quality control and statistical analysis of targeted LC-MS/MS metabolomics.
+* **[SpectraStash](https://github.com/RforMassSpectrometry/SpectraStash)** (Issue #111): High-efficiency serialization and restoration of MS spectra objects using a language-agnostic storage format.
+* **[MsStash](https://github.com/RforMassSpectrometry/MsStash)** (Issue #70): Underlying language-agnostic database serialization layer for raw and processed mass spectrometry spectra.
+* **[MsBackendMetabolomicsWorkbench](https://github.com/rformassspectrometry/MsBackendMetabolomicsWorkbench)** (Issue #77): Connects R/Bioconductor sessions directly to the Metabolomics Workbench repository.
+* **[LIPIDIFy](https://github.com/fayrouzhammal/LIPIDIFy)** (Issue #56): Structural lipid identification and annotation from tandem mass spectrometry.
+* **[PTMsToPathwaysData](https://github.com/UM-Applied-Algorithms-Lab/PTMsToPathwaysData)** (Issue #79): Curated database mapping post-translational modifications (PTMs) directly to biological pathways.
+* **[MsBackendMassIVE](https://github.com/rformassspectrometry/MsBackendMassIVE)** (Issue #37): Client backend for the MassIVE public mass spectrometry database repository.
+
+---
+
+## 3. Epigenomics, 3D Genomics, & Chromatin Structure
+This category includes tools dedicated to the specified topic.
+
+### Representative Submissions:
+* **[MESA](https://github.com/cruk-mi/mesa)** (Issue #113): Methylation Enrichment Sequencing Analysis (window-based differential methylation detection).
+* **[consensusTADs](https://github.com/CSOgroup/consensusTADs)** (Issue #72): Consensus Topologically Associating Domain (TAD) calling across multiple Hi-C replicates.
+* **[loopcityData](https://github.com/jpflores-13/loopcityData)** (Issue #60): Data structures and reference materials for 3D chromatin looping assays.
+* **[epiwraps](https://github.com/ETHZ-INS/epiwraps)** (Issue #46): Wrappers and visualization functions for ChIP-seq, ATAC-seq, and related epigenomics tracks.
+* **[selexprepR](https://github.com/marcorotanegroni/selexprepR)** (Issue #90): Data preprocessing and quality control for Systematic Evolution of Ligands by Exponential Enrichment (SELEX) experiments.
+
+---
+
+## 4. Multi-Omics Integration & Machine Learning
+This category includes tools dedicated to the specified topic.
+
+### Representative Submissions:
+* **[fastPLS](https://github.com/tkcaccia/fastPLS)** (Issue #87): Fast and memory-efficient Partial Least Squares algorithms for dimension reduction and multi-omics regression.
+* **[MultiOmicsBridge](https://github.com/SubhadipJana1409/MultiOmicsBridge)** (Issue #50): Bridge infrastructure enabling unified analysis across disparate omics datasets.
+* **[IntegratedLearner](https://github.com/himelmallick/IntegratedLearner)** (Issue #48): Machine learning pipeline optimizing predictors from high-dimensional multi-platform omics datasets.
+* **[TiDEomics](https://github.com/hte123/TiDEomics)** (Issue #40): Analytical framework for time-course multi-omics biological data.
+* **[SPAROscore](https://github.com/MangiolaLaboratory/SPAROscore)** (Issue #104): Unified gene set scoring that adaptively manages sparsity across spatial and bulk transcriptomics.
+* **[WOVEN](https://github.com/NathanBresette/woven)** (Issue #73): Multi-omics data consolidation and network-based integration.
+
+---
+
+## 5. Big Data Infrastructure, Databases, & Computational Utilities
+This category includes tools dedicated to the specified topic.
+
+### Representative Submissions:
+* **[BiocDuckDB](https://github.com/Genentech/BiocDuckDB)** (Issue #109): Primary Bioconductor bindings for DuckDB, enabling high-performance SQL query engines on genomic files.
+* **[DuckDBDataFrame](https://github.com/Genentech/DuckDBDataFrame)** (Issue #105): SQL/Parquet-backed tabular representations for DataFrame metadata.
+* **[DuckDBGRanges](https://github.com/Genentech/DuckDBGRanges)** (Issue #107): Out-of-memory genomic interval queries using the `GenomicRanges` API backed by DuckDB.
+* **[DuckDBArray](https://github.com/Genentech/DuckDBArray)** (Issue #106): Large array representations (DelayedArray) utilizing DuckDB backends.
+* **[gdscloud](https://github.com/zhengxwen/gdscloud)** (Issue #58): Cloud storage integrations for the Genomic Data Structure (GDS) file format.
+* **[pgen2gds](https://github.com/zhengxwen/pgen2gds)** (Issue #35): Converts large PLINK 2 binary genotype files (`.pgen`) into Genomic Data Structure (`.gds`) files.
+* **[FaissR](https://github.com/tkcaccia/FaissR)** (Issue #85): R bindings to the FAISS library for fast K-nearest neighbors search in high-dimensional genomic spaces.
+* **[QuickBLAST](https://github.com/vizkidd/QuickBLAST)** (Issue #96): Utilities to accelerate BLAST alignment queries.
+
+---
+
+## 6. Functional Annotation, Genetics, & Disease/Organism Repositories
+This category includes tools dedicated to the specified topic.
+
+### Representative Submissions:
+* **[ggwas](https://github.com/bczech/ggwas)** (Issue #114): Customizable `ggplot2`-based visualization of Genome-Wide Association Studies (GWAS) and locus plots.
+* **[ClinicalVariantR](https://github.com/safarafique/ClinicalVariantR)** (Issue #100): Clinical genomics annotation and variant reporting pipelines.
+* **[inferRecom](https://github.com/catherinefayemahoney/inferRecom)** (Issue #80): Pedigree-based algorithms to detect homologous recombination and map recombination intervals.
+* **[PlantTxDbHub](https://github.com/kabilanbio/PlantTxDbHub)** (Issue #44): Standardized TxDb annotations specifically curated for plant species.
+* **[geneslator](https://github.com/knowmics-lab/geneslator)** (Issue #42): Clean translation utilities for gene IDs across different databases and nomenclature standards.
+* **[KEGGemUP](https://github.com/imbeimainz/KEGGemUP)** (Issue #33): Enrichment and mapping utilities for the Kyoto Encyclopedia of Genes and Genomes (KEGG) database.
+* **[GO.ddb](https://github.com/vjcitn/GO.ddb)** (Issue #27): Semantic SQL database representing the Gene Ontology (GO) hierarchical structure.
+* **[ontoProc2](https://github.com/vjcitn/ontoProc2)** (Issue #25): Continuation package for ontology processing and vocabulary mapping in R.
+* **[karioCaS](https://github.com/thiagoparentefiocruz/karioCaS)** (Issue #67): Kraken Confidence Scores for reliable domain-specific microbiota inference in metagenomics.
