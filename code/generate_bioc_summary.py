@@ -105,9 +105,9 @@ def has_compiled_code(repo_url, token=None):
         if e.code == 404:
             return False   # no src/ directory
         if e.code == 403:
-            reset = e.headers.get("X-RateLimit-Reset", "unknown")
-            print(f"  WARNING: GitHub rate limit exceeded (set GITHUB_TOKEN to avoid this). "
-                  f"Reset at unix time {reset}.")
+            raise RuntimeError(
+                "rate_limit:" + (e.headers.get("X-RateLimit-Reset", "unknown"))
+            )
         return False
     except Exception:
         return False
@@ -125,7 +125,16 @@ def scan_compiled_code(package_repos, token=None):
     seen_urls = {}
     for name, url in package_repos.items():
         if url not in seen_urls:
-            seen_urls[url] = has_compiled_code(url, token=token)
+            try:
+                seen_urls[url] = has_compiled_code(url, token=token)
+            except RuntimeError as e:
+                msg = str(e)
+                if msg.startswith("rate_limit:"):
+                    reset = msg.split(":", 1)[1]
+                    print(f"  WARNING: GitHub rate limit exceeded — C/C++ scan aborted. "
+                          f"Set GITHUB_TOKEN to avoid this. Reset at unix time {reset}.")
+                    return {name: False for name in package_repos}
+                raise
     return {name: seen_urls[url] for name, url in package_repos.items()}
 
 # ---------------------------------------------------------------------------
