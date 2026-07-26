@@ -32,8 +32,8 @@ parser.add_argument(
          + ", ".join(f"{p}={m}" for p, m in PROVIDER_DEFAULTS.items()) + ".",
 )
 parser.add_argument(
-    "--input", default="livecontent.md",
-    help="Path to the livecontent.md file (default: livecontent.md).",
+    "--input-json", required=True,
+    help="Path to a JSON file (or text file with a JSON array) containing BiocContributions issue data.",
 )
 parser.add_argument(
     "--output", default="bioc_contributions_summary.md",
@@ -48,7 +48,7 @@ model = args.model or PROVIDER_DEFAULTS.get(provider, "")
 # Parse issues
 # ---------------------------------------------------------------------------
 
-with open(args.input, "r") as f:
+with open(args.input_json, "r") as f:
     text = f.read()
 
 json_start = text.find("[")
