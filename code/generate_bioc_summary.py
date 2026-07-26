@@ -103,7 +103,11 @@ def has_compiled_code(repo_url, token=None):
             contents = json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
         if e.code == 404:
-            return False
+            return False   # no src/ directory
+        if e.code == 403:
+            reset = e.headers.get("X-RateLimit-Reset", "unknown")
+            print(f"  WARNING: GitHub rate limit exceeded (set GITHUB_TOKEN to avoid this). "
+                  f"Reset at unix time {reset}.")
         return False
     except Exception:
         return False
