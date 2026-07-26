@@ -18,7 +18,7 @@ This category includes tools dedicated to the specified topic.
 * **[scCompoundDE](https://github.com/SubhadipJana1409/scCompoundDE)** (Issue #49): Differential expression analysis specifically designed for drug/compound screening at single-cell resolution.
 * **[SimiCviz](https://github.com/ML4BM-Lab/SimiCviz)** (Issue #38): Visualization and regulatory analysis of gene co-expression and transcription factors in single cells.
 * **[spatialdataR](https://github.com/HelenaLC/spatialdataR)** (Issue #34): Representation and manipulation of large spatial biology datasets.
-* **[scMAGeCK](https://github.com/weili-lab/scMAGeCK)** (Issue #89): High-throughput single-cell CRISPR screen analysis.
+* **[scMAGeCK](https://github.com/weili-lab/scMAGeCK)** `[C/C++]` (Issue #89): High-throughput single-cell CRISPR screen analysis.
 
 ---
 
@@ -53,7 +53,7 @@ This category includes tools dedicated to the specified topic.
 This category includes tools dedicated to the specified topic.
 
 ### Representative Submissions:
-* **[fastPLS](https://github.com/tkcaccia/fastPLS)** (Issue #87): Fast and memory-efficient Partial Least Squares algorithms for dimension reduction and multi-omics regression.
+* **[fastPLS](https://github.com/tkcaccia/fastPLS)** `[C/C++]` (Issue #87): Fast and memory-efficient Partial Least Squares algorithms for dimension reduction and multi-omics regression.
 * **[MultiOmicsBridge](https://github.com/SubhadipJana1409/MultiOmicsBridge)** (Issue #50): Bridge infrastructure enabling unified analysis across disparate omics datasets.
 * **[IntegratedLearner](https://github.com/himelmallick/IntegratedLearner)** (Issue #48): Machine learning pipeline optimizing predictors from high-dimensional multi-platform omics datasets.
 * **[TiDEomics](https://github.com/hte123/TiDEomics)** (Issue #40): Analytical framework for time-course multi-omics biological data.
@@ -70,10 +70,10 @@ This category includes tools dedicated to the specified topic.
 * **[DuckDBDataFrame](https://github.com/Genentech/DuckDBDataFrame)** (Issue #105): SQL/Parquet-backed tabular representations for DataFrame metadata.
 * **[DuckDBGRanges](https://github.com/Genentech/DuckDBGRanges)** (Issue #107): Out-of-memory genomic interval queries using the `GenomicRanges` API backed by DuckDB.
 * **[DuckDBArray](https://github.com/Genentech/DuckDBArray)** (Issue #106): Large array representations (DelayedArray) utilizing DuckDB backends.
-* **[gdscloud](https://github.com/zhengxwen/gdscloud)** (Issue #58): Cloud storage integrations for the Genomic Data Structure (GDS) file format.
-* **[pgen2gds](https://github.com/zhengxwen/pgen2gds)** (Issue #35): Converts large PLINK 2 binary genotype files (`.pgen`) into Genomic Data Structure (`.gds`) files.
-* **[FaissR](https://github.com/tkcaccia/FaissR)** (Issue #85): R bindings to the FAISS library for fast K-nearest neighbors search in high-dimensional genomic spaces.
-* **[QuickBLAST](https://github.com/vizkidd/QuickBLAST)** (Issue #96): Utilities to accelerate BLAST alignment queries.
+* **[gdscloud](https://github.com/zhengxwen/gdscloud)** `[C/C++]` (Issue #58): Cloud storage integrations for the Genomic Data Structure (GDS) file format.
+* **[pgen2gds](https://github.com/zhengxwen/pgen2gds)** `[C/C++]` (Issue #35): Converts large PLINK 2 binary genotype files (`.pgen`) into Genomic Data Structure (`.gds`) files.
+* **[FaissR](https://github.com/tkcaccia/FaissR)** `[C/C++]` (Issue #85): R bindings to the FAISS library for fast K-nearest neighbors search in high-dimensional genomic spaces.
+* **[QuickBLAST](https://github.com/vizkidd/QuickBLAST)** `[C/C++]` (Issue #96): Utilities to accelerate BLAST alignment queries.
 
 ---
 
