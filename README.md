@@ -1,6 +1,6 @@
 ## summContrib -- analyze and report on packages in review at Bioconductor
 
-### NOTE - This repo needs improvement and is offered as a springboard to working with AI.  You might fork the repo and have a coding agent address the open issue, or make other changes.
+### NOTE - This repo needs improvement and is offered as a springboard to working with AI.  You might fork the repo and have a coding agent address the [open issue](https://github.com/vjcitn/summContrib/issues/1), or make other changes.
 
 ### Basic workflow
 
