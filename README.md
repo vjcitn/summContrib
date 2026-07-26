@@ -1,5 +1,7 @@
 ## summContrib -- analyze and report on packages in review at Bioconductor
 
+### NOTE - This repo needs improvement and is offered as a springboard to working with AI.  You might fork the repo and have a coding agent address the open issue, or make other changes.
+
 ### Basic workflow
 
 1. Generate JSON document with basic information about submissions.  These
