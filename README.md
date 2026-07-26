@@ -1,11 +1,20 @@
-# summContrib
-occasional report on packages in review at bioc
+## summContrib -- analyze and report on packages in review at Bioconductor
 
-Gemini 3.5 was prompted with: Please summarize the issues at https://github.com/bioconductor/BiocContributions into five or six categories of genomic data science
+### Basic workflow
 
-Then it was asked to produce a markdown document and then to use hyperlinks for the names of contributed packages in the report.
+1. Generate JSON document with basic information about submissions.  These
+are all open issues at `bioconductor/BiocContributions`.
+```
+  curl -H "Authorization: Bearer $GITHUB_PAT" \
+       -H "Accept: application/vnd.github+json" \
+       "https://api.github.com/repos/bioconductor/BiocContributions/issues?state=all&per_page=100"
+```
 
-Output in markdown format will be saved in date-stamped folders.  There will be one file of json GitHub API output, and one file of markdown.
+2. Save the result of the API call above to a file, say `conts.json`.
+
+3. Run the `generate_bioc_summary.py` program, preferably with `GITHUB_TOKEN` set to
+a valid value.  A markdown document will be produced with categorization and
+additional information about each submission.
 
 ## Compiled code detection
 
@@ -29,3 +38,14 @@ python3 code/generate_bioc_summary.py
 ```
 
 The script reads the token from the `GITHUB_TOKEN` environment variable automatically. A fine-grained token with read-only access to public repositories is sufficient.
+
+
+## Origins
+
+Gemini 3.5 was prompted with: Please summarize the issues at https://github.com/bioconductor/BiocContributions into five or six categories of genomic data science
+
+Then it was asked to produce a markdown document and then to use hyperlinks for the names of contributed packages in the report.
+
+Output in markdown format will be saved in date-stamped folders.  There will be one file of json GitHub API output, and one file of markdown.
+
+The code base was then iteratively altered using Claude Sonnet.
